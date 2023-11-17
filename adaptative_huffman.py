@@ -73,26 +73,25 @@ class HuffmanTree:
 
         return decoded_symbols
 
-def adaptive_huffman_encoding(symbols):
+def adaptive_huffman_encoding(text):
     tree = HuffmanTree()
-    tree.build_tree(symbols)
+    tree.build_tree(text)
     tree.generate_code_table()
 
-    encoded_symbols = tree.encode(symbols)
-    return encoded_symbols
+    encoded_text = tree.encode(text)
+    return encoded_text
 
-def adaptive_huffman_decoding(encoded_symbols):
-    tree = HuffmanTree()
-    return tree.decode(encoded_symbols)
+def adaptive_huffman_decoding(tree, encoded_text):
+    return tree.decode(encoded_text)
 
-
-symbols = ['h', "o", "l", 'a', " ","c", "o", "m", "o", "e", "s", "t", "a", "s" ]
+# Usage
+text = "Hola como estas"
 tree = HuffmanTree()
-tree.build_tree(symbols)
+tree.build_tree(text)
 tree.generate_code_table()
 
-encoded_symbols = tree.encode(symbols)
-print(encoded_symbols)
+encoded_text = adaptive_huffman_encoding(text)
+print(encoded_text)
 
-decoded_symbols = tree.decode(encoded_symbols)
-print(decoded_symbols)
+decoded_text = adaptive_huffman_decoding(tree, encoded_text)
+print(decoded_text)
