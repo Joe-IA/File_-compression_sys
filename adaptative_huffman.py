@@ -56,7 +56,7 @@ class HuffmanTree:
         return encoded_symbols
 
     def decode(self, encoded_symbols):
-        decoded_symbols = []
+        decoded_text = ""
         current_node = self.root
 
         for bit in encoded_symbols:
@@ -68,10 +68,10 @@ class HuffmanTree:
                 raise ValueError("Invalid bit: " + bit)
 
             if not current_node.left and not current_node.right:
-                decoded_symbols.append(current_node.symbol)
+                decoded_text += current_node.symbol
                 current_node = self.root
 
-        return decoded_symbols
+        return decoded_text
 
 def adaptive_huffman_encoding(text):
     tree = HuffmanTree()
