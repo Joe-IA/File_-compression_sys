@@ -1,0 +1,6 @@
+Faltar por hacer
+    - Acomodar la clase
+    - Binario a ascii
+    - Ascii a Binario
+    - Nuevo archivo .compress.txt
+    - Si archivo no contiene .compress marcar error
