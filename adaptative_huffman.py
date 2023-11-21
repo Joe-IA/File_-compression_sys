@@ -93,6 +93,7 @@ tree.build_tree(text)
 tree.generate_code_table()
 
 binario = pickle.dumps(tree)
+print(binario)
 tree2 = pickle.loads(binario)
 
 encoded_text = adaptive_huffman_encoding(text)
