@@ -1,3 +1,5 @@
+import pickle
+
 class Node:
     def __init__(self, symbol, weight=1):
         self.symbol = symbol
@@ -90,8 +92,11 @@ tree = HuffmanTree()
 tree.build_tree(text)
 tree.generate_code_table()
 
+binario = pickle.dumps(tree)
+tree2 = pickle.loads(binario)
+
 encoded_text = adaptive_huffman_encoding(text)
 print(encoded_text)
 
-decoded_text = adaptive_huffman_decoding(tree, encoded_text)
+decoded_text = adaptive_huffman_decoding(tree2, encoded_text)
 print(decoded_text)
