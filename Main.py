@@ -100,9 +100,10 @@ class HuffmanTree:
             file.write(text)
 
     def serelization(self, message):
-        path = self.path[:-3] + "bin"
+        path = self.path[:-3] + "bin" 
         try:
             with open(path, "wb") as file:
+                print(len(message))
                 message.tofile(file)
         except Exception as e:
             print(e)   
