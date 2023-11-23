@@ -1,3 +1,5 @@
+import pickle
+from bitarray import bitarray
 class Node:
     def __init__(self, symbol, weight=1):
         self.symbol = symbol
@@ -83,24 +85,28 @@ class HuffmanTree:
     def encoding(self):
         self.build_tree()
         self.generate_code_table()
-
         encoded_text = self.encode()
-        path = self.path[:-3] + "compress.txt"
-        with open(path, "w") as file:
-            file.write(encoded_text)
-    
+        bit_secuence = bitarray(encoded_text)
+        print(bit_secuence)
+        self.serelization(bit_secuence)
+
     def decoding(self):
         decoded_text = self.decode()
         text = ""
         for i in decoded_text:
             text += i
-        path = self.path[:-13] + "2.txt"
+        path = self.path[:-13] + ".txt"
         with open(path, "w") as file:
             file.write(text)
 
-    
+    def serelization(self, message):
+        path = self.path[:-3] + "bin"
+        try:
+            with open(path, "wb") as file:
+                message.tofile(file)
+        except Exception as e:
+            print(e)   
+     
 hm = HuffmanTree()
 hm.set_text("C:/Users/josec/OneDrive/Escritorio/Universidad/Semestre 4/Estructuras de datos II/Proyecto final/File_compression_sys/prueba.txt")
 code = hm.encoding()
-hm.set_text("C:/Users/josec/OneDrive/Escritorio/Universidad/Semestre 4/Estructuras de datos II/Proyecto final/File_compression_sys/prueba.compress.txt")
-hm.decoding()
