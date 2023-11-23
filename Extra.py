@@ -1,6 +1,3 @@
-import pickle
-from bitarray import bitarray
-
 class Node:
     def __init__(self, symbol, weight=1):
         self.symbol = symbol
@@ -59,7 +56,7 @@ class HuffmanTree:
         return encoded_symbols
 
     def decode(self, encoded_symbols):
-        decoded_text = ""
+        decoded_symbols = []
         current_node = self.root
 
         for bit in encoded_symbols:
@@ -71,10 +68,10 @@ class HuffmanTree:
                 raise ValueError("Invalid bit: " + bit)
 
             if not current_node.left and not current_node.right:
-                decoded_text += current_node.symbol
+                decoded_symbols.append(current_node.symbol)
                 current_node = self.root
 
-        return decoded_text
+        return decoded_symbols
 
 def adaptive_huffman_encoding(text):
     tree = HuffmanTree()
@@ -89,19 +86,12 @@ def adaptive_huffman_decoding(tree, encoded_text):
 
 # Usage
 text = "Hola como estas"
-ba = bitarray()
 tree = HuffmanTree()
 tree.build_tree(text)
 tree.generate_code_table()
 
-binario = pickle.dumps(tree)
-ba.extend([bool(int(b)) for b in binario])
-print(binario)
-tree2 = pickle.loads(binario)
-print(ba)
-
 encoded_text = adaptive_huffman_encoding(text)
 print(encoded_text)
 
-decoded_text = adaptive_huffman_decoding(tree2, encoded_text)
+decoded_text = adaptive_huffman_decoding(tree, encoded_text)
 print(decoded_text)

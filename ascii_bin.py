@@ -23,5 +23,3 @@ def ascii_to_bin(message):
         num_bin += format(ord(message[i]), '08b')
     print(num_bin)
 
-bin_to_ascii("0")
-ascii_to_bin('\0')

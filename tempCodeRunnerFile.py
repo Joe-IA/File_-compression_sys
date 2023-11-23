@@ -1,1 +1,1 @@
-como estas
+print(bin(54))
