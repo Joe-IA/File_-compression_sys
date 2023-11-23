@@ -97,7 +97,9 @@ tree.generate_code_table()
 binario = pickle.dumps(tree)
 ba.extend([bool(int(b)) for b in binario])
 print(binario)
-tree2 = pickle.loads(binario)
+
+bytes_obj = ba.tobytes()
+tree2 = pickle.loads(bytes_obj)
 print(ba)
 
 encoded_text = adaptive_huffman_encoding(text)
