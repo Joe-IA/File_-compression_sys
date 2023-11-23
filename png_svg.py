@@ -11,6 +11,8 @@ png_file = 'input.png'
 svg_file = 'output.svg'
 png_to_svg(png_file, svg_file)
 
+"""
 svg_file = 'input.svg'
 png_file = 'output.png'
 svg_to_png(svg_file, png_file)
+"""

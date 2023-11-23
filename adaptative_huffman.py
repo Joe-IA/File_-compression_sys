@@ -1,4 +1,5 @@
 import pickle
+import bitarray
 
 class Node:
     def __init__(self, symbol, weight=1):
@@ -88,8 +89,10 @@ def adaptive_huffman_decoding(tree, encoded_text):
 
 # Usage
 text = "Hola como estas"
+ba = bitarray()
 tree = HuffmanTree()
 tree.build_tree(text)
+ba.append(tree)
 tree.generate_code_table()
 
 binario = pickle.dumps(tree)
