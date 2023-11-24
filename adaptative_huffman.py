@@ -84,17 +84,21 @@ tree = HuffmanTree()
 tree.build_tree(text)
 tree.generate_code_table()
 
-print (tree.code_table)
+#print (tree.code_table)
 tree2 = json.dumps(tree.code_table)
 
 
 encoded_text = adaptive_huffman_encoding(text)
-print(encoded_text)
+#print(encoded_text)
 
 aux = json.dumps(tree.code_table) + '|' + encoded_text
 position = aux.find('|')
 json_string, encoded_message = aux[:position], aux[position+1:]
 code_table = json.loads(json_string)
+
+
+binary = aux.encode("utf-8")
+print(binary)
 
 # Ahora puedes usar 'code_table' y 'encoded_message' para decodificar el mensaje
 decoded_message = decode(encoded_message, code_table)
