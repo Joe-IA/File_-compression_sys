@@ -1,5 +1,8 @@
 import pickle
+import json
+import re
 from bitarray import bitarray
+
 class Node:
     def __init__(self, symbol, weight=1):
         self.symbol = symbol
@@ -11,17 +14,10 @@ class HuffmanTree:
     def __init__(self):
         self.root = None
         self.code_table = {}
-        self.text = None
-        self.path = None
 
-    def set_text(self, path):
-        self.path = path
-        with open(self.path, "r") as file:
-            self.text = file.read()
-        
-    def build_tree(self):
+    def build_tree(self, symbols):
         symbol_counts = {}
-        for symbol in self.text:
+        for symbol in symbols:
             if symbol not in symbol_counts:
                 symbol_counts[symbol] = 0
             symbol_counts[symbol] += 1
@@ -55,59 +51,58 @@ class HuffmanTree:
 
         if node.right:
             self._generate_code_table(node.right, prefix + "1")
-    
-    def encode(self):
+
+    def encode(self, symbols):
         encoded_symbols = ""
-        for symbol in self.text:
+        for symbol in symbols:
             encoded_symbol = self.code_table[symbol]
             encoded_symbols += encoded_symbol
 
         return encoded_symbols
 
-    def decode(self):
-        decoded_symbols = []
-        current_node = self.root
 
-        for bit in self.text:
-            if bit == "0":
-                current_node = current_node.left
-            elif bit == "1":
-                current_node = current_node.right
-            else:
-                raise ValueError("Invalid bit: " + bit)
+class Encoding:
+    def adaptive_huffman_encoding(self, text):
+        tree = HuffmanTree()
+        tree.build_tree(text)
+        tree.generate_code_table()
 
-            if not current_node.left and not current_node.right:
-                decoded_symbols.append(current_node.symbol)
-                current_node = self.root
+        encoded_text = tree.encode(text)
+        return encoded_text, tree.code_table
 
-        return decoded_symbols
-    
-    def encoding(self):
-        self.build_tree()
-        self.generate_code_table()
-        encoded_text = self.encode()
-        bit_secuence = bitarray(encoded_text)
-        print(bit_secuence)
-        self.serelization(bit_secuence)
+    def decode(self, encoded_message, code_table):
+        decoded_message = ""
+        while encoded_message:
+            for character, code in code_table.items():
+                if encoded_message.startswith(code):
+                    decoded_message += character
+                    encoded_message = encoded_message[len(code):]
+        return decoded_message
 
-    def decoding(self):
-        decoded_text = self.decode()
-        text = ""
-        for i in decoded_text:
-            text += i
-        path = self.path[:-13] + ".txt"
-        with open(path, "w") as file:
-            file.write(text)
 
-    def serelization(self, message):
-        path = self.path[:-3] + "bin" 
-        try:
-            with open(path, "wb") as file:
-                print(len(message))
-                message.tofile(file)
-        except Exception as e:
-            print(e)   
-     
-hm = HuffmanTree()
-hm.set_text("C:/Users/josec/OneDrive/Escritorio/Universidad/Semestre 4/Estructuras de datos II/Proyecto final/File_compression_sys/prueba.txt")
-code = hm.encoding()
+if __name__ == "__main__":
+    # Usage
+    text = "Hola como estas"
+    tree = HuffmanTree()
+    tree.build_tree(text)
+    tree.generate_code_table()
+
+    #print (tree.code_table)
+    tree2 = json.dumps(tree.code_table)
+
+
+    encoded_text = Encoding().adaptive_huffman_encoding(text)
+    #print(encoded_text)
+
+    aux = json.dumps(tree.code_table) + '|' + encoded_text
+    position = aux.find('|')
+    json_string, encoded_message = aux[:position], aux[position+1:]
+    code_table = json.loads(json_string)
+
+
+    binary = aux.encode("utf-8")
+    print(binary)
+
+    # Ahora puedes usar 'code_table' y 'encoded_message' para decodificar el mensaje
+    decoded_message = Encoding().decode(encoded_message, code_table)
+    print(decoded_message)

@@ -1,4 +1,6 @@
 import pickle
+import json
+import re
 from bitarray import bitarray
 
 class Node:
@@ -58,50 +60,49 @@ class HuffmanTree:
 
         return encoded_symbols
 
-    def decode(self, encoded_symbols):
-        decoded_text = ""
-        current_node = self.root
 
-        for bit in encoded_symbols:
-            if bit == "0":
-                current_node = current_node.left
-            elif bit == "1":
-                current_node = current_node.right
-            else:
-                raise ValueError("Invalid bit: " + bit)
+class Encoding:
+    def adaptive_huffman_encoding(self, text):
+        tree = HuffmanTree()
+        tree.build_tree(text)
+        tree.generate_code_table()
 
-            if not current_node.left and not current_node.right:
-                decoded_text += current_node.symbol
-                current_node = self.root
+        encoded_text = tree.encode(text)
+        return encoded_text, tree.code_table
 
-        return decoded_text
+    def decode(self, encoded_message, code_table):
+        decoded_message = ""
+        while encoded_message:
+            for character, code in code_table.items():
+                if encoded_message.startswith(code):
+                    decoded_message += character
+                    encoded_message = encoded_message[len(code):]
+        return decoded_message
 
-def adaptive_huffman_encoding(text):
+
+if __name__ == "__main__":
+    # Usage
+    text = "Hola como estas"
     tree = HuffmanTree()
     tree.build_tree(text)
     tree.generate_code_table()
 
-    encoded_text = tree.encode(text)
-    return encoded_text
+    #print (tree.code_table)
+    tree2 = json.dumps(tree.code_table)
 
-def adaptive_huffman_decoding(tree, encoded_text):
-    return tree.decode(encoded_text)
 
-# Usage
-text = "Hola como estas"
-ba = bitarray()
-tree = HuffmanTree()
-tree.build_tree(text)
-tree.generate_code_table()
+    encoded_text = Encoding().adaptive_huffman_encoding(text)
+    #print(encoded_text)
 
-binario = pickle.dumps(tree)
-ba.extend([bool(int(b)) for b in binario])
-print(binario)
-tree2 = pickle.loads(binario)
-print(ba)
+    aux = json.dumps(tree.code_table) + '|' + encoded_text
+    position = aux.find('|')
+    json_string, encoded_message = aux[:position], aux[position+1:]
+    code_table = json.loads(json_string)
 
-encoded_text = adaptive_huffman_encoding(text)
-print(encoded_text)
 
-decoded_text = adaptive_huffman_decoding(tree2, encoded_text)
-print(decoded_text)
+    binary = aux.encode("utf-8")
+    print(binary)
+
+    # Ahora puedes usar 'code_table' y 'encoded_message' para decodificar el mensaje
+    decoded_message = Encoding().decode(encoded_message, code_table)
+    print(decoded_message)
