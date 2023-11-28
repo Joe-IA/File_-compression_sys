@@ -1,6 +1,4 @@
-import pickle
 import json
-import re
 from bitarray import bitarray
 
 class Node:
@@ -18,27 +16,20 @@ class HuffmanTree:
     def build_tree(self, symbols):
         symbol_counts = {}
         for symbol in symbols:
-            if symbol not in symbol_counts:
-                symbol_counts[symbol] = 0
-            symbol_counts[symbol] += 1
+            symbol_counts[symbol] = symbol_counts.get(symbol, 0) + 1
 
-        nodes = []
-        for symbol, count in symbol_counts.items():
-            node = Node(symbol, count)
-            nodes.append(node)
+        nodes = [Node(symbol, count) for symbol, count in symbol_counts.items()]
 
         while len(nodes) > 1:
             left = nodes.pop(0)
             right = nodes.pop(0)
             parent = Node(None, left.weight + right.weight)
-            parent.left = left
-            parent.right = right
+            parent.left, parent.right = left, right
             nodes.append(parent)
 
         self.root = nodes[0]
 
     def generate_code_table(self):
-        self.code_table = {}
         self._generate_code_table(self.root, "")
 
     def _generate_code_table(self, node, prefix):
@@ -53,20 +44,13 @@ class HuffmanTree:
             self._generate_code_table(node.right, prefix + "1")
 
     def encode(self, symbols):
-        encoded_symbols = ""
-        for symbol in symbols:
-            encoded_symbol = self.code_table[symbol]
-            encoded_symbols += encoded_symbol
-
-        return encoded_symbols
+        return ''.join(self.code_table[symbol] for symbol in symbols)
 
 def adaptive_huffman_encoding(text):
     tree = HuffmanTree()
     tree.build_tree(text)
     tree.generate_code_table()
-
-    encoded_text = tree.encode(text)
-    return encoded_text
+    return tree.encode(text)
 
 def decode(encoded_message, code_table):
     decoded_message = ""
@@ -75,27 +59,23 @@ def decode(encoded_message, code_table):
             if encoded_message.startswith(code):
                 decoded_message += character
                 encoded_message = encoded_message[len(code):]
+                break  # Agregamos un break para evitar comparaciones innecesarias
     return decoded_message
 
 # Usage
 text = "Hola como estas"
-ba = bitarray()
 tree = HuffmanTree()
 tree.build_tree(text)
 tree.generate_code_table()
 
-#print (tree.code_table)
 tree2 = json.dumps(tree.code_table)
 
-
 encoded_text = adaptive_huffman_encoding(text)
-#print(encoded_text)
 
 aux = json.dumps(tree.code_table) + '|' + encoded_text
 position = aux.find('|')
 json_string, encoded_message = aux[:position], aux[position+1:]
 code_table = json.loads(json_string)
-
 
 binary = aux.encode("utf-8")
 print(binary)
