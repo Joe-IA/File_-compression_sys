@@ -1,7 +1,7 @@
 def file_to_text(route):
     with open(route, "rb") as f:
         read_text = f.read()
-    text = read_text.decode("latin-1")
+    text = read_text.decode("utf-8")
     print(text)
 
 
