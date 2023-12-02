@@ -1,51 +1,102 @@
-from pydub import AudioSegment
-import numpy as np
-import binascii
+import pickle
+from bitarray import bitarray
 
-def audio_to_binary(audio_file):
-    # Cargar el archivo de audio
-    audio = AudioSegment.from_file(audio_file)
-    
-    # Aumentar la velocidad de reproducción del audio
-    audio = audio.set_frame_rate(44100)  # Ajustar la frecuencia de muestreo según tus necesidades
-    audio = audio.set_channels(1)        # Ajustar el número de canales según tus necesidades
-    
-    # Convertir el audio a binario
-    return audio.raw_data
+class Node:
+    def __init__(self, symbol, weight=1):
+        self.symbol = symbol
+        self.weight = weight
+        self.left = None
+        self.right = None
 
-def binary_to_text(binary_data):
-    return binascii.b2a_hex(binary_data).decode()
+class HuffmanTree:
+    def __init__(self):
+        self.root = None
+        self.code_table = {}
 
-def text_to_binary(text_data):
-    return binascii.a2b_hex(text_data.encode())
+    def build_tree(self, symbols):
+        symbol_counts = {}
+        for symbol in symbols:
+            symbol_counts[symbol] = symbol_counts.get(symbol, 0) + 1
 
-def binary_to_audio(binary_data, output_file):
-    audio = AudioSegment(
-        np.frombuffer(binary_data, dtype=np.int16).tobytes(),
-        frame_rate=44100,  # Ajustar la frecuencia de muestreo según tus necesidades
-        sample_width=2,    # Ajustar el ancho de muestra según tus necesidades
-        channels=1         # Ajustar el número de canales según tus necesidades
-    )
-    audio.export(output_file, format="mp3", bitrate="192k")  # Ajustar la tasa de bits según tus necesidades
+        nodes = [Node(symbol, count) for symbol, count in symbol_counts.items()]
 
-def save_binary_data_to_file(binary_data, output_file):
-    with open(output_file, 'wb') as file:
-        file.write(binary_data)
+        while len(nodes) > 1:
+            nodes.sort(key=lambda x: x.weight)
+            left = nodes.pop(0)
+            right = nodes.pop(0)
+            parent = Node(None, left.weight + right.weight)
+            parent.left = left
+            parent.right = right
+            nodes.append(parent)
 
-# Ejemplo de uso:
-audio_file = "test.mp3"
-output_audio_file = "output_audio.mp3"
-output_file = "output_audio.bin"
+        self.root = nodes[0]
 
-# Convertir audio MP3 a binario
-binary_data = audio_to_binary(audio_file)
+    def generate_code_table(self):
+        self.code_table = {}
+        self._generate_code_table(self.root, bitarray())
 
-# Convertir binario a texto
-text_data = binary_to_text(binary_data)
+    def _generate_code_table(self, node, current_code):
+        if not node.left and not node.right:
+            self.code_table[node.symbol] = current_code
+            return
 
-# Convertir texto a binario
-new_binary_data = text_to_binary(text_data)
+        if node.left:
+            self._generate_code_table(node.left, current_code + bitarray([0]))
 
-save_binary_data_to_file(binary_data, output_file)
-# Convertir binario a audio en formato MP3
-binary_to_audio(new_binary_data, output_audio_file)
+        if node.right:
+            self._generate_code_table(node.right, current_code + bitarray([1]))
+
+    def encode(self, symbols):
+        encoded_bits = bitarray()
+        for symbol in symbols:
+            encoded_bits.extend(self.code_table[symbol])
+
+        return encoded_bits
+
+class Encoding:
+    def adaptive_huffman_encoding(self, text):
+        if not text:
+            return bitarray(), {}
+
+        tree = HuffmanTree()
+        tree.build_tree(text)
+        tree.generate_code_table()
+
+        encoded_text = tree.encode(text)
+        return encoded_text, tree.code_table
+
+    def decode(self, encoded_bits, code_table):
+        decoded_message = ""
+        temp_code = bitarray()
+        
+        for bit in encoded_bits:
+            temp_code.append(bit)
+            matching_symbols = [symbol for symbol, code in code_table.items() if temp_code == code]
+            
+            if matching_symbols:
+                decoded_message += matching_symbols[0]
+                temp_code = bitarray()
+
+        return decoded_message
+
+def save_to_file(filename, data):
+    with open(filename, 'wb') as file:
+        pickle.dump(data, file)
+
+def load_from_file(filename):
+    with open(filename, 'rb') as file:
+        data = pickle.load(file)
+    return data
+
+if __name__ == "__main__":
+    with open("output_text.txt", 'r') as file:
+        text = file.read()
+
+    encoded_text, code_table = Encoding().adaptive_huffman_encoding(text)
+    save_to_file('compressed_data.bin', (encoded_text, code_table))
+
+    loaded_data = load_from_file('compressed_data.bin')
+    loaded_encoded_text, loaded_code_table = loaded_data
+
+    decoded_message = Encoding().decode(loaded_encoded_text, loaded_code_table)
+    print(decoded_message)
