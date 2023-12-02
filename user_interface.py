@@ -1,12 +1,32 @@
 from tkinter import *
 from tkinter import filedialog, messagebox
-from Main import Encoding
-import json
-import pickle
-from bitarray import bitarray
+from Main import *
+
+
+
 encoding = Encoding()
 
+opciones = ["Texto .txt", "Imagen .bmp", "Audio .wav", "Video .mp4"]
 
+
+"""
+    Functions
+
+    In this section all the functions that are called by the widgets are declared.
+
+    browseFile: 
+        This function opens a file dialog and saves the name of the file in the entry widget.
+
+    browseDir: 
+        This function opens a directory dialog and saves the name of the directory in the entry widget.
+
+    compress: 
+        This function calls the compress methods from the Compresion class depending on the file type selected. 
+
+    decompress: 
+        This function calls the decompress methods from the Compresion class depending on the file type selected.
+
+"""
 def browseFile():
     filename = filedialog.askopenfilename()
     if filename != "" :
@@ -14,9 +34,7 @@ def browseFile():
         entryfile.delete(0, END)
         entryfile.insert(0, name)
         File.set(name.split(".")[0])
-        print(File.get())   
-        with open(filename, "r") as f:
-            text.set(f.read())
+        print(File.get())
     else:
         messagebox.showerror("No file", "The file was not correctly uploaded")
 
@@ -34,35 +52,49 @@ def browseDir():
 
 def compress():
     try:
-        encoded_text, tree_code_table = encoding.adaptive_huffman_encoding(text.get())
-        bits = bitarray()
-        bits = bitarray([int(i) & 1 for i in encoded_text])
-        with open(f"{Directory.get()}/{File.get()}.bin", "wb") as bf:
-            pickle.dump((tree_code_table, bits), bf)
+        if File_Type.get() == "Texto .txt":
+            Compresion.compress_text(Directory.get(), File.get(), encoding)
+        elif File_Type.get() == "Imagen .bmp":
+             Compresion.compress_image(Directory.get(), File.get(), encoding)
+        elif File_Type.get() == "Audio .wav":
+            Compresion.compress_audio(Directory.get(), File.get(), encoding)
+        elif File_Type.get() == "Video .mp4":
+            Compresion.compress_video(Directory.get(), File.get(), encoding)
         messagebox.showinfo("Success", "The file was compressed correctly")
     except Exception as e:
-        print(e)
         messagebox.showerror("Error", "The file was not compressed correctly.\nPlease try again.")
+        print(e)
         
+
 def decompress():
     try:
-        with open(f"{Directory.get()}/{File.get()}.bin", "rb") as bf:
-            tree_code_table, bits = pickle.load(bf)
-        decoded_text = encoding.decode(bits.to01(), tree_code_table)
-        with open(f"{Directory.get()}/{File.get()}.txt", "w") as f:
-            f.write(decoded_text)
+        if File_Type.get() == "Texto .txt":
+            Compresion.decompress_text(Directory.get(), File.get(), encoding)
+        elif File_Type.get() == "Imagen .bmp":
+            Compresion.decompress_image(Directory.get(), File.get(), encoding)
+        elif File_Type.get() == "Audio .wav":
+            Compresion.decompress_audio(Directory.get(), File.get(), encoding)
+        elif File_Type.get() == "Video .mp4":
+            Compresion.decompress_video(Directory.get(), File.get(), encoding)
         messagebox.showinfo("Success", "The file was decompressed correctly")
     except Exception as e:
-        print(e)
         messagebox.showerror("Error", "The file was not decompressed correctly.\nPlease try again.")
+        print(e)
 
+
+"""
+    GUI
+    In this section all the variables and widgets are declared and placed in the window. In runs within a loop that keeps the window open until the user closes it.
+
+"""
 root = Tk()
 root.title("File Compressor")
 root.geometry("480x200")
 
 File = StringVar()
 Directory = StringVar()
-text = StringVar()
+File_Type = StringVar(root)
+File_Type.set(opciones[0])
 
 menu = Menu(root)
 root.config(menu=menu)
@@ -96,6 +128,9 @@ buttoncomp.grid(row=0, column=0, padx=10, pady=5)
 
 buttondecomp = Button(button_frame, text="Decompress", command=decompress)
 buttondecomp.grid(row=0, column=1, padx=10, pady=5)
+
+select = OptionMenu(button_frame, File_Type, *opciones)
+select.grid(row=0, column=2, padx=10, pady=5)
 
 
 root.mainloop()
