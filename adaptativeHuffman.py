@@ -1,108 +1,160 @@
-import pickle
-import json
-import re
-from bitarray import bitarray
+import os
 
-class Node:
-    def __init__(self, symbol, weight=1):
-        self.symbol = symbol
-        self.weight = weight
-        self.left = None
-        self.right = None
+class HuffmanCoding:
+    def __init__(self, path):
+        self.path = path
+        self.nodes = []
+        self.codes = {}
+        self.reverse_mapping = {}
 
-class HuffmanTree:
-    def __init__(self):
-        self.root = None
-        self.code_table = {}
+    class HeapNode:
+        def __init__(self, char, freq):
+            self.char = char
+            self.freq = freq
+            self.left = None
+            self.right = None
 
-    def build_tree(self, symbols):
-        symbol_counts = {}
-        for symbol in symbols:
-            if symbol not in symbol_counts:
-                symbol_counts[symbol] = 0
-            symbol_counts[symbol] += 1
+    def make_frequency_dict(self, text):
+        frequency = {}
+        for character in text:
+            if not character in frequency:
+                frequency[character] = 0
+            frequency[character] += 1
+        return frequency
 
-        nodes = []
-        for symbol, count in symbol_counts.items():
-            node = Node(symbol, count)
-            nodes.append(node)
+    def make_heap(self, frequency):
+        for key in frequency:
+            node = self.HeapNode(key, frequency[key])
+            self.nodes.append(node)
 
-        while len(nodes) > 1:
-            left = nodes.pop(0)
-            right = nodes.pop(0)
-            parent = Node(None, left.weight + right.weight)
-            parent.left = left
-            parent.right = right
-            nodes.append(parent)
+    def merge_nodes(self):
+        while len(self.nodes) > 1:
+            self.nodes.sort(key=lambda x: x.freq)
+            node1 = self.nodes.pop(0)
+            node2 = self.nodes.pop(0)
 
-        self.root = nodes[0]
+            merged = self.HeapNode(None, node1.freq + node2.freq)
+            merged.left = node1
+            merged.right = node2
 
-    def generate_code_table(self):
-        self.code_table = {}
-        self._generate_code_table(self.root, "")
+            self.nodes.append(merged)
 
-    def _generate_code_table(self, node, prefix):
-        if not node.left and not node.right:
-            self.code_table[node.symbol] = prefix
+    def make_codes_helper(self, root, current_code):
+        if root is None:
             return
 
-        if node.left:
-            self._generate_code_table(node.left, prefix + "0")
+        if root.char is not None:
+            self.codes[root.char] = current_code
+            self.reverse_mapping[current_code] = root.char
+            return
 
-        if node.right:
-            self._generate_code_table(node.right, prefix + "1")
+        self.make_codes_helper(root.left, current_code + "0")
+        self.make_codes_helper(root.right, current_code + "1")
 
-    def encode(self, symbols):
-        encoded_symbols = ""
-        for symbol in symbols:
-            encoded_symbol = self.code_table[symbol]
-            encoded_symbols += encoded_symbol
+    def make_codes(self):
+        root = self.nodes[0]
+        current_code = ""
+        self.make_codes_helper(root, current_code)
 
-        return encoded_symbols
+    def get_encoded_text(self, text):
+        encoded_text = ""
+        for character in text:
+            encoded_text += self.codes[character]
+        return encoded_text
 
+    def pad_encoded_text(self, encoded_text):
+        extra_padding = 8 - len(encoded_text) % 8
+        for i in range(extra_padding):
+            encoded_text += "0"
 
-class Encoding:
-    def adaptive_huffman_encoding(self, text):
-        tree = HuffmanTree()
-        tree.build_tree(text)
-        tree.generate_code_table()
+        padded_info = "{0:08b}".format(extra_padding)
+        encoded_text = padded_info + encoded_text
+        return encoded_text
 
-        encoded_text = tree.encode(text)
-        return encoded_text, tree.code_table
+    def get_byte_array(self, padded_encoded_text):
+        if len(padded_encoded_text) % 8 != 0:
+            print("Encoded text not padded properly")
+            exit(0)
 
-    def decode(self, encoded_message, code_table):
-        decoded_message = ""
-        while encoded_message:
-            for character, code in code_table.items():
-                if encoded_message.startswith(code):
-                    decoded_message += character
-                    encoded_message = encoded_message[len(code):]
-        return decoded_message
+        b = bytearray()
+        for i in range(0, len(padded_encoded_text), 8):
+            byte = padded_encoded_text[i:i+8]
+            b.append(int(byte, 2))
+        return b
 
+    def compress(self):
+        filename, file_extension = os.path.splitext(self.path)
+        output_path = filename + ".bin"
 
-if __name__ == "__main__":
-    # Usage
-    text = "Hola como estas"
-    tree = HuffmanTree()
-    tree.build_tree(text)
-    tree.generate_code_table()
+        with open(self.path, 'r+') as file, open(output_path, 'wb') as output:
+            text = file.read()
+            text = text.rstrip()
 
-    #print (tree.code_table)
-    tree2 = json.dumps(tree.code_table)
+            frequency = self.make_frequency_dict(text)
+            self.make_heap(frequency)
+            self.merge_nodes()
+            self.make_codes()
 
+            encoded_text = self.get_encoded_text(text)
+            padded_encoded_text = self.pad_encoded_text(encoded_text)
 
-    encoded_text = Encoding().adaptive_huffman_encoding(text)
-    #print(encoded_text)
+            b = self.get_byte_array(padded_encoded_text)
+            output.write(bytes(b))
 
-    aux = json.dumps(tree.code_table) + '|' + encoded_text
-    position = aux.find('|')
-    json_string, encoded_message = aux[:position], aux[position+1:]
-    code_table = json.loads(json_string)
+        print("Compressed")
+        return output_path
 
+    def remove_padding(self, padded_encoded_text):
+        padded_info = padded_encoded_text[:8]
+        extra_padding = int(padded_info, 2)
 
-    binary = aux.encode("utf-8")
-    print(binary)
+        padded_encoded_text = padded_encoded_text[8:]
+        encoded_text = padded_encoded_text[:-1*extra_padding]
 
-    # Ahora puedes usar 'code_table' y 'encoded_message' para decodificar el mensaje
-    decoded_message = Encoding().decode(encoded_message, code_table)
-    print(decoded_message)
+        return encoded_text
+
+    def decode_text(self, encoded_text):
+        current_code = ""
+        decoded_text = ""
+
+        for bit in encoded_text:
+            current_code += bit
+            if current_code in self.reverse_mapping:
+                character = self.reverse_mapping[current_code]
+                decoded_text += character
+                current_code = ""
+
+        return decoded_text
+
+    def decompress(self, input_path):
+        filename, file_extension = os.path.splitext(self.path)
+        output_path = filename + "_decompressed" + ".txt"
+
+        with open(input_path, 'rb') as file, open(output_path, 'w') as output:
+            bit_string = ""
+
+            byte = file.read(1)
+            while len(byte) > 0:
+                byte = ord(byte)
+                bits = bin(byte)[2:].rjust(8, '0')
+                bit_string += bits
+                byte = file.read(1)
+
+            encoded_text = self.remove_padding(bit_string)
+
+            decompressed_text = self.decode_text(encoded_text)
+
+            output.write(decompressed_text)
+
+        print("Decompressed")
+        return output_path
+
+huffman = HuffmanCoding("test.txt")
+
+compressed_file = huffman.compress()
+
+decompressed_file = huffman.decompress(compressed_file)
+
+print(f"Archivo original: {huffman.path}")
+print(f"Archivo comprimido: {compressed_file}")
+print(f"Archivo descomprimido: {decompressed_file}")

@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/atzincruz/Documents/carpeta sin título/CodeForces/GitHub/File_compression_sys",
+      "program": "/Users/atzincruz/Documents/carpeta sin título/CodeForces/GitHub/File_compression_sys/build/Debug/outDebug"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import numpy as np
 import PIL.Image as Image
 import base64
@@ -20,6 +21,13 @@ class ImagesToTxt:
         imagen.save(route)
 
 
+=======
+def file_to_text(route):
+    with open(route, "rb") as f:
+        read_text = f.read()
+    text = read_text.decode("utf-8")
+    print(text)
+>>>>>>> 9b7184b6e7c9f674ddda279e3ba4c7053d11991e
 
 
 if __name__ == "__main__":
