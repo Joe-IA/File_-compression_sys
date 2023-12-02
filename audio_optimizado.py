@@ -3,6 +3,18 @@ from bitarray import bitarray
 from pydub import AudioSegment
 import base64
 
+"""
+Classes
+Node and HuffmanTree build the huffman tree and generate the code table for the symbols. It uses the adaptive huffman algorithm to build the tree.
+
+Encoding class:
+    In charge of encoding and decoding the text using the huffman tree and code table.
+
+AudioProcessor class:
+    In charge of converting the audio to binary and viceversa.
+    
+"""
+
 class Node:
     def __init__(self, symbol, weight=1, left=None, right=None):
         self.symbol = symbol
