@@ -57,7 +57,7 @@ def compress():
         elif File_Type.get() == "Imagen .bmp":
              Compresion.compress_image(Directory.get(), File.get(), encoding)
         elif File_Type.get() == "Audio .wav":
-            Compresion.compress_audio(Directory.get(), File.get(), encoding)
+            Compresion.compress_audio(Directory.get(), File.get())
         elif File_Type.get() == "Video .mp4":
             Compresion.compress_video(Directory.get(), File.get(), encoding)
         messagebox.showinfo("Success", "The file was compressed correctly")
@@ -73,7 +73,7 @@ def decompress():
         elif File_Type.get() == "Imagen .bmp":
             Compresion.decompress_image(Directory.get(), File.get(), encoding)
         elif File_Type.get() == "Audio .wav":
-            Compresion.decompress_audio(Directory.get(), File.get(), encoding)
+            Compresion.decompress_audio(Directory.get(), File.get())
         elif File_Type.get() == "Video .mp4":
             Compresion.decompress_video(Directory.get(), File.get(), encoding)
         messagebox.showinfo("Success", "The file was decompressed correctly")

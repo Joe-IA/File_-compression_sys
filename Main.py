@@ -1,8 +1,9 @@
 from bitarray import bitarray
 from audio import *
 import pickle
-from FilesToTxt import *
+from filesToTxt import *
 from video import *
+from audio_optimizado import *
 
 class Node:
     def __init__(self, symbol, weight=1):
@@ -140,12 +141,12 @@ class Compresion:
 
     """
     @staticmethod
-    def compress_audio(directory, name, encoding):
-        encoded_text, tree_code_table = encoding.adaptive_huffman_encoding(AudioProcessor.process_audio_to_text(f"{directory}/{name}.wav"))
-        bits = bitarray()
-        bits = bitarray([int(i) & 1 for i in encoded_text])
-        with open(f"{directory}/{name}.bin", "wb") as bf:
-            pickle.dump((tree_code_table, bits), bf)
+    def compress_audio(directory, name):
+        print(directory, name)
+        audio_processor = AudioProcessor()
+        encoding_instance = Encoding() 
+        output_audio_file = f"{name}_compressed.bin"
+        audio_processor.process_audio_to_text(directory, f"{name}.wav", output_audio_file)
 
 
     @staticmethod
@@ -182,12 +183,11 @@ class Compresion:
             pickle.dump((tree_code_table, bits), bf)
 
     @staticmethod
-    def decompress_audio(directory, name, encoding):
-        with open(f"{directory}/{name}.bin", "rb") as bf:
-            tree_code_table, bits = pickle.load(bf)
-        decoded_text = encoding.decode(bits.to01(), tree_code_table)
-        decoded_text = AudioProcessor.text_to_binary(decoded_text)
-        AudioProcessor.binary_to_audio(decoded_text, f"{directory}/{name}.wav")
+    def decompress_audio(directory, name):
+        audio_processor = AudioProcessor()
+        encoding_instance = Encoding()
+        input_audio_file = f"{name}.bin"
+        audio_processor.process_text_to_audio(directory, input_audio_file, f"{name}_decompressed.wav")
 
 
 
